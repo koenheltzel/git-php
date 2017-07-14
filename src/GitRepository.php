@@ -98,14 +98,29 @@
 		}
 
 
-		/**
-		 * Returns list of tags in repo.
-		 * @return string[]|NULL  NULL => no tags
-		 */
-		public function getTags()
-		{
-			return $this->extractFromCommand('git tag', 'trim');
-		}
+        /**
+         * Returns list of tags in repo.
+         * @return string[]|NULL  NULL => no tags
+         */
+        public function getTags()
+        {
+            return $this->extractFromCommand('git tag', 'trim');
+        }
+
+
+        /**
+         * Returns current tag if the current commit exactly matches a tag.
+         * @return string[]|NULL  NULL => no current tag
+         */
+        public function getCurrentTag()
+        {
+            try {
+                return $this->extractFromCommand('git describe --exact-match', 'trim');
+            }
+            catch (GitException $e) {
+                return null;
+            }
+        }
 
 
 		/**
@@ -365,6 +380,29 @@
 
 
 		/**
+		 * Exists changes?
+		 * `git status` + magic
+		 * @return array
+		 */
+		public function getModifiedFiles()
+		{
+		    $status = [];
+			$this->begin();
+			exec('git status', $status);
+			$this->end();
+
+			$modified = [];
+			foreach($status as $line) {
+			    $parts = explode('modified:', $line);
+			    if (count($parts) > 1) {
+                    $modified[] = trim($parts[1]);
+                }
+            }
+            return $modified;
+		}
+
+
+		/**
 		 * @deprecated
 		 */
 		public function isChanges()
@@ -431,6 +469,27 @@
 				->run("git fetch $remote", $params)
 				->end();
 		}
+
+
+        /**
+         * Returns list of all remotes in repo.
+         * @return array
+         */
+        public function getRemotes()
+        {
+            $remotes = $this->extractFromCommand('git remote -v');
+            $result = [];
+            foreach ($remotes as $remote) {
+                $remote = str_replace('	', ' ', $remote);
+                $remote = str_replace('(', '', $remote);
+                $remote = str_replace(')', '', $remote);
+                $parts = explode(' ', $remote);
+
+                if (!isset($result[$parts[0]])) $result[$parts[0]] = [];
+                $result[$parts[0]][$parts[2]] = $parts[1];
+            }
+            return $result;
+        }
 
 
 		/**
