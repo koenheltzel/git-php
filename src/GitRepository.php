@@ -104,21 +104,27 @@
          */
         public function getTags()
         {
-            return $this->extractFromCommand('git tag', 'trim');
+            return $this->extractFromCommand('local tag', 'trim');
         }
 
 
         /**
-         * Returns current tag if the current commit exactly matches a tag.
-         * @return string[]|NULL  NULL => no current tag
+         * Returns current tag in the form of an array: [$tag, $additionalCommits, $abbreviatedCommit].
+         * @return array => [$tag, $additionalCommits, $abbreviatedCommit]
          */
         public function getCurrentTag()
         {
             try {
-                return $this->extractFromCommand('git describe --exact-match', 'trim');
+
+                $result = $this->extractFromCommand('local describe --long', 'trim');
+                $parts = explode('-', array_shift($result));
+                $abbreviatedCommit = array_pop($parts); // the abbreviated object name of the most recent commit
+                $additionalCommits = array_pop($parts); // the number of additional commits on top of the tagged object
+                $tag = implode('-', $parts); // Glue the rest back together, just incase the tag name contained a "-" originally.
+                return [$tag, $additionalCommits, $abbreviatedCommit];
             }
             catch (GitException $e) {
-                return null;
+                return [null, null, null];
             }
         }
 
