@@ -104,7 +104,7 @@
          */
         public function getTags()
         {
-            return $this->extractFromCommand('local tag', 'trim');
+            return $this->extractFromCommand('git tag', 'trim');
         }
 
 
@@ -115,8 +115,7 @@
         public function getCurrentTag()
         {
             try {
-
-                $result = $this->extractFromCommand('local describe --long', 'trim');
+                $result = $this->extractFromCommand('git describe --long --tags', 'trim');
                 $parts = explode('-', array_shift($result));
                 $abbreviatedCommit = array_pop($parts); // the abbreviated object name of the most recent commit
                 $additionalCommits = array_pop($parts); // the number of additional commits on top of the tagged object
