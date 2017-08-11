@@ -383,6 +383,17 @@
 			return (strpos($lastLine, 'nothing to commit')) === FALSE; // FALSE => changes
 		}
 
+        public function isFileTracked($filename)
+        {
+            try {
+                $result = $this->extractFromCommand('git ls-files --error-unmatch ' . $filename, 'trim');
+                return true;
+            }
+            catch (GitException $e) {
+                return false;
+            }
+        }
+
 
 		/**
 		 * Exists changes?
@@ -484,15 +495,18 @@
         {
             $remotes = $this->extractFromCommand('git remote -v');
             $result = [];
-            foreach ($remotes as $remote) {
-                $remote = str_replace('	', ' ', $remote);
-                $remote = str_replace('(', '', $remote);
-                $remote = str_replace(')', '', $remote);
-                $parts = explode(' ', $remote);
+            if (is_array($remotes)) {
+                foreach ($remotes as $remote) {
+                    $remote = str_replace('	', ' ', $remote);
+                    $remote = str_replace('(', '', $remote);
+                    $remote = str_replace(')', '', $remote);
+                    $parts = explode(' ', $remote);
 
-                if (!isset($result[$parts[0]])) $result[$parts[0]] = [];
-                $result[$parts[0]][$parts[2]] = $parts[1];
+                    if (!isset($result[$parts[0]])) $result[$parts[0]] = [];
+                    $result[$parts[0]][$parts[2]] = $parts[1];
+                }
             }
+
             return $result;
         }
 
