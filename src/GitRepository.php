@@ -394,6 +394,10 @@
             }
         }
 
+        public function unpushedCommits() {
+			$result = $this->extractFromCommand('git log --branches --not --remotes --oneline');
+			return is_null($result) ? [] : $result;
+        }
 
 		/**
 		 * Exists changes?
